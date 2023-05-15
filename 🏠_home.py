@@ -101,7 +101,7 @@ class home:
                 n+=1
                 key+=1
 
-        with left_column:
+        with right_column:
             if st.button('查看数据库'):
                 if '监控数据库' in self.selected_options:
                     database_abs_path = os.path.abspath(self.database_path)
@@ -109,7 +109,7 @@ class home:
                     webbrowser.open('https://github.com/kkkkk95/Risk_Evaluate/raw/main/database/%E8%88%AA%E7%8F%AD%E5%8A%A8%E6%80%81%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%8D%B1%E9%99%A9%E6%BA%90%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%88%E5%AF%B9%E5%BA%94%E5%85%AC%E5%8F%B8%E4%B8%89%E5%B1%82%E7%BA%A7%E3%80%81%E4%B8%AD%E5%BF%83%E9%83%A8%E9%97%A8%E7%BA%A7%E5%8D%B1%E9%99%A9%E6%BA%90%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%89.xlsx')
                 else:
                     st.warning('未选择数据库')
-        with right_column:
+        with left_column:
             if st.button('导入数据库和模板'):
                 with st.spinner('正在处理数据，请稍等...'):
                     # 在每次复制前清空目标文件夹
@@ -119,7 +119,7 @@ class home:
                         self.database = pd.read_excel(database_abs_path, header=0, skiprows=1)
                         st.session_state.database=self.database
                         st.success('监控数据库导入成功！')
-                        st.write(st.session_state.database)
+                        
                     #待加入其他数据库
                     #elif '' in selected_option:
 
