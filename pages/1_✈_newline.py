@@ -403,15 +403,12 @@ class analyze_sysrecord:
 def form_callback():
     if 'database' not in st.session_state:
         st.warning('数据库未导入')
-    elif 'name' not in st.session_state:
+    if 'name' not in st.session_state:
         st.warning('请输入姓名')
-    elif 'title' not in st.session_state:
+    if 'title' not in st.session_state:
         st.warning('请输入标题')
-    elif 'datestr' not in st.session_state:
+    if 'datestr' not in st.session_state:
         st.warning('请输入日期')
-    else:
-        st.write('Data Saved')
-        st.session_state.datasavecode=True
 def download_button(file_path, button_text):
     with open(os.path.abspath(file_path), 'rb') as f:
         bytes = f.read()
