@@ -168,7 +168,7 @@ class analyze_report:
                     '风险等级': self.changed_database['三级危险源风险等级'],
                     '风险值': self.changed_database['三级危险源风险分值'],
                 })
-    #part0:表头、
+    #part0:表头
     def part_title(self):
         part_rows=[]
         title1_row=[cell.value for cell in self.ws[1]]
@@ -401,13 +401,18 @@ class analyze_sysrecord:
         self.new_sysrecord()
 
 def form_callback():
+    st.session_state.datasavecode=1
     if 'database' not in st.session_state:
+        st.session_state.datasavecode=0
         st.warning('数据库未导入')
     if 'name' not in st.session_state or st.session_state.name=='':
+        st.session_state.datasavecode=0
         st.warning('请输入姓名')
     if 'title' not in st.session_state:
+        st.session_state.datasavecode=0
         st.warning('请输入标题')
     if 'datestr' not in st.session_state:
+        st.session_state.datasavecode=0
         st.warning('请输入日期')
 def download_button(file_path, button_text):
     with open(os.path.abspath(file_path), 'rb') as f:
@@ -470,7 +475,7 @@ if __name__ == "__main__":
         with left_column:
             if st.button('生成危险源清单'):
                 with st.spinner('正在处理数据，请稍等...'):
-                    if 'datasavecode' not in st.session_state:
+                    if 'datasavecode' not in st.session_state or st.session_state.datasavecode==0:
                         st.warning('初始数据未准备正确,请上传数据文件')
                     else:
                         #实例化方法
@@ -488,7 +493,7 @@ if __name__ == "__main__":
         with left_column:
             if st.button('风险评价报告表'):
                 with st.spinner('正在处理数据，请稍等...'):
-                    if 'datasavecode' not in st.session_state:
+                    if 'datasavecode' not in st.session_state or st.session_state.datasavecode==0:
                         st.warning('初始数据未准备正确,请上传数据文件')
                     else:
                         #实例化方法
@@ -505,7 +510,7 @@ if __name__ == "__main__":
         with left_column:
             if st.button('系统与工作分析记录表'):
                 with st.spinner('正在处理数据，请稍等...'):
-                    if 'datasavecode' not in st.session_state:
+                    if 'datasavecode' not in st.session_state or st.session_state.datasavecode==0:
                         st.warning('初始数据未准备正确,请上传数据文件') 
                     else:
                         #实例化方法
