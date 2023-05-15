@@ -403,7 +403,7 @@ class analyze_sysrecord:
 def form_callback():
     if 'database' not in st.session_state:
         st.warning('数据库未导入')
-    if 'name' not in st.session_state:
+    if 'name' not in st.session_state or st.session_state=='':
         st.warning('请输入姓名')
     if 'title' not in st.session_state:
         st.warning('请输入标题')
