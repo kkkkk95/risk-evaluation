@@ -464,8 +464,9 @@ if __name__ == "__main__":
         title = st.text_input("请输入标题：",'xx机型运行xx至xx机场往返航线风险评价', key='title')
         #checkbox_input = st.checkbox('Yes or No', key='my_checkbox')
         submit_button = st.form_submit_button(label='Submit', on_click=form_callback)
-    if st.session_state.datasavecode==1 and 'datasavecode' in st.session_state:
-        st.success('导入数据完成！')
+    if 'datasavecode' in st.session_state:
+        if st.session_state.datasavecode==1:
+            st.success('导入数据完成！')
     #页面设置
     st.title(st.session_state.flight_type+'航线新开航分析')
     #危险源清单
