@@ -464,7 +464,8 @@ if __name__ == "__main__":
         title = st.text_input("请输入标题：",'xx机型运行xx至xx机场往返航线风险评价', key='title')
         #checkbox_input = st.checkbox('Yes or No', key='my_checkbox')
         submit_button = st.form_submit_button(label='Submit', on_click=form_callback)
-
+    if st.session_state.datasavecode=1 and 'datasavecode' in st.session_state:
+        st.success('导入数据完成！')
     #页面设置
     st.title(st.session_state.flight_type+'航线新开航分析')
     #危险源清单
@@ -481,7 +482,7 @@ if __name__ == "__main__":
                         #实例化方法
                         dangerlist=analyze_dangerlist(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
                         dangerlist.main()
-                        st.write('complete')
+                        st.success('已生成！')
                         with right_column:
                             download_button(os.path.abspath(r'result/危险源清单.xlsx'), '下载危险源清单')
                         
@@ -499,7 +500,7 @@ if __name__ == "__main__":
                         #实例化方法
                         report=analyze_report(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr,st.session_state.title)
                         report.main()
-                        st.write('complete')
+                        st.success('已生成！')
                         with right_column:
                             download_button(os.path.abspath(r'result/风险评价报告表.xlsx'), '下载风险评价报告表')
     #系统与工作分析记录表
@@ -516,7 +517,7 @@ if __name__ == "__main__":
                         #实例化方法
                         sysrecord=analyze_sysrecord(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
                         sysrecord.main()
-                        st.write('complete')
+                        st.success('已生成！')
                         with right_column:
                             download_button(os.path.abspath(r'result/系统与工作分析记录表.xlsx'), '系统与工作分析记录表')
                     
