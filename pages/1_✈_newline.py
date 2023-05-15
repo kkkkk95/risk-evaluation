@@ -519,5 +519,5 @@ if __name__ == "__main__":
                         sysrecord.main()
                         st.success('已生成！')
                         with right_column:
-                            download_button(os.path.abspath(r'result/系统与工作分析记录表.xlsx'), '系统与工作分析记录表')
+                            download_button(os.path.abspath(r'result/系统与工作分析记录表.xlsx'), '下载系统与工作分析记录表')
                     
