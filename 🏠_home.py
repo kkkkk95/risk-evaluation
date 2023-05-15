@@ -133,7 +133,6 @@ if __name__ == "__main__":
     if 'first_visit' not in st.session_state:
         st.session_state.first_visit=True
         st.session_state.flight_type=''
-        st.session_state.database=''
         st.balloons()
           
     else:
