@@ -36,14 +36,42 @@ class home:
             # For macOS
             os.system('rm -rf ' + dir_path + '/*')
 
-    def open_file(self,file_path):
-        if platform.system() == 'Windows':
-            os.startfile(file_path)
-        elif platform.system() == 'Linux':
-            subprocess.run(["xdg-open", file_path])
-        else:
-            # For macOS
-            subprocess.run(["open", file_path])
+    def download_button(self,file_path, button_text):
+        with open(os.path.abspath(file_path), 'rb') as f:
+            bytes = f.read()
+            b64 = base64.b64encode(bytes).decode()
+
+        # 创建一个名为 "Download File" 的下载链接
+        href = f'<a href="data:application/octet-stream;base64,{b64}" download="{os.path.basename(file_path)}">{button_text}</a>'
+
+        # 在 Streamlit 应用程序中使用按钮链接
+        st.markdown(f'<div class="button-container">{href}</div>', unsafe_allow_html=True)
+
+        # 添加 CSS 样式以将链接样式化为按钮
+        st.markdown("""
+            <style>
+            .button-container {
+                display: inline-block;
+                margin-top: 1em;
+            }
+            .button-container a {
+                background-color: #0072C6;
+                border: none;
+                color: white;
+                padding: 0.5em 1em;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .button-container a:hover {
+                background-color: #005AA3;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
     def load_lottieurl(self, url):
         r = requests.get(url)
@@ -81,10 +109,9 @@ class home:
             with right_column:
                 st_lottie(self.lottie_coding, height=300, key="coding")
                 # 创建一个链接以打开Word文档
-                if st.button("查看工作程序详情"):
-                    self.open_file(os.path.abspath(self.doc_path_program))
-                if st.button("查看流程"):
-                    self.open_file(os.path.abspath(self.doc_path_workflow))
+                self.down_button(os.path.abspath(self.doc_path_program),"下载查看工作程序详情")
+                self.down_button(os.path.abspath(self.doc_path_workflow),"下载查看流程详情")
+
         # 导入数据
         
         st.write("---")
@@ -101,9 +128,7 @@ class home:
         with right_column:
             if st.button('查看数据库'):
                 if '监控数据库' in self.selected_options:
-                    database_abs_path = os.path.abspath(self.database_path)
-                    #self.open_file(database_abs_path)
-                    webbrowser.open('https://github.com/kkkkk95/Risk_Evaluate/raw/main/database/%E8%88%AA%E7%8F%AD%E5%8A%A8%E6%80%81%E7%9B%91%E6%8E%A7%E5%AE%A4%E5%8D%B1%E9%99%A9%E6%BA%90%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%88%E5%AF%B9%E5%BA%94%E5%85%AC%E5%8F%B8%E4%B8%89%E5%B1%82%E7%BA%A7%E3%80%81%E4%B8%AD%E5%BF%83%E9%83%A8%E9%97%A8%E7%BA%A7%E5%8D%B1%E9%99%A9%E6%BA%90%E6%95%B0%E6%8D%AE%E5%BA%93%EF%BC%89.xlsx')
+                    self.down_button(os.path.abspath(self.database_path),"下载查看数据库详情")
                 else:
                     st.warning('未选择数据库')
         with left_column:
