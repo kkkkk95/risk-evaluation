@@ -126,11 +126,6 @@ class home:
                 n+=1
                 key+=1
 
-        with right_column:
-            if '监控数据库' in self.selected_options and 'database' in st.session_state:
-                self.download_button(os.path.abspath(self.database_path),"下载查看监控数据库详情")
-            else:
-                st.warning('未导入数据库')
         with left_column:
             if st.button('导入数据库和模板'):
                 with st.spinner('正在处理数据，请稍等...'):
@@ -147,7 +142,11 @@ class home:
 
                     else:
                         st.warning('请选择正确的数据库！')
-
+        with right_column:
+            if '监控数据库' in self.selected_options and 'database' in st.session_state:
+                self.download_button(os.path.abspath(self.database_path),"下载查看监控数据库详情")
+            else:
+                st.warning('未导入数据库')
 if __name__ == "__main__":
     st.set_page_config(page_title="new_line_analyze", page_icon="🏠")
 
