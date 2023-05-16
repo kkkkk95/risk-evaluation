@@ -109,8 +109,8 @@ class home:
             with right_column:
                 st_lottie(self.lottie_coding, height=300, key="coding")
                 # 创建一个链接以打开Word文档
-                self.down_button(os.path.abspath(self.doc_path_program),"下载查看工作程序详情")
-                self.down_button(os.path.abspath(self.doc_path_workflow),"下载查看流程详情")
+                self.download_button(os.path.abspath(self.doc_path_program),"下载查看工作程序详情")
+                self.download_button(os.path.abspath(self.doc_path_workflow),"下载查看流程详情")
 
         # 导入数据
         
@@ -128,7 +128,7 @@ class home:
         with right_column:
             if st.button('查看数据库'):
                 if '监控数据库' in self.selected_options:
-                    self.down_button(os.path.abspath(self.database_path),"下载查看数据库详情")
+                    self.download_button(os.path.abspath(self.database_path),"下载查看数据库详情")
                 else:
                     st.warning('未选择数据库')
         with left_column:
