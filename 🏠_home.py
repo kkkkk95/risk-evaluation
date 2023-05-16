@@ -10,6 +10,7 @@ import subprocess
 import sys
 import platform
 import webbrowser
+import base64
 class home:
     def __init__(self,options,selected_options):
         #self.img_sphere = Image.open("images/sphere.jpg")
