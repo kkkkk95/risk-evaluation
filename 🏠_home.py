@@ -82,12 +82,9 @@ class home:
                 st_lottie(self.lottie_coding, height=300, key="coding")
                 # 创建一个链接以打开Word文档
                 if st.button("查看工作程序详情"):
-                    doc_abs_path = os.path.abspath(self.doc_path_program)
-                    webbrowser.open('https://github.com/kkkkk95/Risk_Evaluate/raw/main/database/%E6%96%B0%E5%BC%80%E8%88%AA%E7%BA%BF%E9%A3%8E%E9%99%A9%E5%88%86%E6%9E%90%E8%AF%84%E4%BB%B7%E5%8F%8A4D_15%E8%83%BD%E5%8A%9B%E8%AF%84%E4%BC%B0%E5%B7%A5%E4%BD%9C%E7%A8%8B%E5%BA%8F.docx')
+                    self.open_file(os.path.abspath(self.doc_path_program))
                 if st.button("查看流程"):
-                    doc_abs_path = os.path.abspath(self.doc_path_workflow)
-                    webbrowser.open('https://github.com/kkkkk95/Risk_Evaluate/raw/main/database/%E8%87%AA%E5%8A%A8%E5%8C%96%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B.docx')
-                    
+                    self.open_file(os.path.abspath(self.doc_path_workflow))
         # 导入数据
         
         st.write("---")
