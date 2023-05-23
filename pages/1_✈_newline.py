@@ -12,7 +12,7 @@ from datetime import date
 from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.styles import PatternFill,Alignment,Side,Border
-
+import sqlite3
 #危险源清单
 class analyze_dangerlist:
     def __init__(self,database,type,name,date):
@@ -62,18 +62,17 @@ class analyze_dangerlist:
         ]
         ]
         # 将新原因1-9列合并为新原因列
-        # 如果只有一个新原因，直接使用该原因作为新原因列
-        if len(data.columns[data.columns.str.contains('新原因')]) == 1:
-            data['新原因'] = data['新原因1']
-        else:
-            # 否则，将新原因1-9列合并为新原因列
-            new_reasons = data[['新原因1', '新原因2', '新原因3', '新原因4', '新原因5', '新原因6', '新原因7', '新原因8', '新原因9']]
-            new_reasons_str = new_reasons.apply(lambda x: ' '.join([f'{i+1}、{v}' for i, v in enumerate(x) if pd.notna(v)]), axis=1)
-        # 将预防措施1-8列和应急措施1-3列合并为措施列
-        precautions = data[['预防措施1', '预防措施2', '预防措施3', '预防措施4', '预防措施5', '预防措施6', '预防措施7', '预防措施8']]
-        emergency_measures = data[['应急措施1', '应急措施2', '应急措施3']]
+        # 获取新原因列
+        new_reasons = self.changed_database[['新原因1', '新原因2', '新原因3', '新原因4', '新原因5', '新原因6', '新原因7', '新原因8', '新原因9']]
+        new_reasons_str = new_reasons.apply(lambda x: ' '.join([f'{i+1}、{v}' if pd.notna(v) and len(x.dropna()) > 1 else f'{v}' for i, v in enumerate(x)]), axis=1)
+        new_reasons_str = new_reasons_str.str.replace('nan', '').str.replace(r'\b\s+\b', ' ').str.strip()
+
+        # 获取措施列
+        precautions = self.changed_database[['预防措施1', '预防措施2', '预防措施3', '预防措施4', '预防措施5', '预防措施6', '预防措施7', '预防措施8']]
+        emergency_measures = self.changed_database[['应急措施1', '应急措施2', '应急措施3']]
         measures = precautions.join(emergency_measures)
-        measures_str = measures.apply(lambda x: ' '.join([f'{i+1}、{v}' for i, v in enumerate(x) if pd.notna(v)]), axis=1)
+        measures_str = measures.apply(lambda x: ' '.join([f'{i+1}、{v}' if pd.notna(v) and len(x.dropna()) > 1 else f'{v}' for i, v in enumerate(x)]), axis=1)
+        measures_str = measures_str.str.replace('nan', '').str.replace(r'\b\s+\b', ' ').str.strip()
 
         # 将新原因1-9列和预防措施1-8列和应急措施1-3列合并为新 DataFrame
         new_database = pd.DataFrame({
@@ -133,30 +132,62 @@ class analyze_dangerlist:
 
 #风险评价报告表
 class analyze_report:
-    def __init__(self,database,type,name,date,title):
+    def __init__(self,databasecentre,databasejk,type,name,date,title):
         self.report_path = os.path.abspath(r'templet/风险评价报告表模版.xlsx')
         self.report_save_path=os.path.abspath(r'result/风险评价报告表.xlsx')
-        self.database = database
+        self.databasecentre=databasecentre
+        self.database_jk = databasejk
         self.type=type
         self.name=name
         self.date=date
         self.title=title
         self.workbook=load_workbook(self.report_path)
         self.ws=self.workbook.active
+        self.dic={}
+    def get_centredata(self,center_risk_src,dept_risk_src_jk):
+        # 创建SQLite数据库并导入数据
+        self.conn = sqlite3.connect("risk_sources.db")
+        center_risk_src.to_sql("center_risk_src", self.conn, if_exists="replace", index=False)
+        dept_risk_src_jk.to_sql("dept_risk_src_jk",self.conn, if_exists="replace", index=False)
+        self.conn.commit()
+        c=self.conn.cursor()
+        # 从center_risk_src表中获取所有部门级危险源数据库名称
+        c.execute("SELECT 部门级危险源数据库 FROM center_risk_src")
+        center_src_names = [row[0] for row in c.fetchall()] 
+        dangerdata2=[]
+        # 遍历每个部门级危险源数据库名称
+        for name in center_src_names:
+            c.execute("""
+                SELECT center_risk_src.中心级危险源数据库
+                FROM dept_risk_src_jk
+                JOIN center_risk_src
+                ON dept_risk_src_jk.三级危险源 = center_risk_src.部门级危险源数据库
+                WHERE dept_risk_src_jk.三级危险源 = ?
+            """, (name,))
+            for result in c.fetchall():
+                centrerisk=str(result)[2:-3]
+                self.dic[name]=centrerisk
     def change_database(self):
         if self.type=='国内':
-            self.changed_database=self.database[self.database['国内航线']==1]
+            self.changed_database=self.database_jk[self.database_jk['国内航线']==1]
         elif self.type=='国际一般':
-            self.changed_database=self.database[self.database['国际一般航线']==1]
+            self.changed_database=self.database_jk[self.database_jk['国际一般航线']==1]
         elif self.type=='国际特殊':
-            self.changed_database=self.database[self.database['国际特殊航线']==1]
+            self.changed_database=self.database_jk[self.database_jk['国际特殊航线']==1]
+        import pandas as pd
+
+        # 获取新原因列
         new_reasons = self.changed_database[['新原因1', '新原因2', '新原因3', '新原因4', '新原因5', '新原因6', '新原因7', '新原因8', '新原因9']]
-        new_reasons_str = new_reasons.apply(lambda x: ' '.join([f'{i+1}、{v}' for i, v in enumerate(x) if pd.notna(v)]), axis=1)
-        # 将预防措施1-8列和应急措施1-3列合并为措施列
+        new_reasons_str = new_reasons.apply(lambda x: ' '.join([f'{i+1}、{v}' if pd.notna(v) and len(x.dropna()) > 1 else f'{v}' for i, v in enumerate(x)]), axis=1)
+        new_reasons_str = new_reasons_str.str.replace('nan', '').str.replace(r'\b\s+\b', ' ').str.strip()
+
+        # 获取措施列
         precautions = self.changed_database[['预防措施1', '预防措施2', '预防措施3', '预防措施4', '预防措施5', '预防措施6', '预防措施7', '预防措施8']]
         emergency_measures = self.changed_database[['应急措施1', '应急措施2', '应急措施3']]
         measures = precautions.join(emergency_measures)
-        measures_str = measures.apply(lambda x: ' '.join([f'{i+1}、{v}' for i, v in enumerate(x) if pd.notna(v)]), axis=1)
+        measures_str = measures.apply(lambda x: ' '.join([f'{i+1}、{v}' if pd.notna(v) and len(x.dropna()) > 1 else f'{v}' for i, v in enumerate(x)]), axis=1)
+        measures_str = measures_str.str.replace('nan', '').str.replace(r'\b\s+\b', ' ').str.strip()
+        
         self.new_database = pd.DataFrame({
                     '三级危险源':self.changed_database['三级危险源'],
                     '新原因': new_reasons_str,
@@ -168,6 +199,10 @@ class analyze_report:
                     '风险等级': self.changed_database['三级危险源风险等级'],
                     '风险值': self.changed_database['三级危险源风险分值'],
                 })
+        self.get_centredata(self.databasecentre,self.changed_database)
+        mapping = self.dic  # 获取字典
+        # 使用 map() 方法将 '三级危险源' 列的值映射为相应的 '二级危险源' 值
+        self.new_database['二级危险源'] = self.changed_database['三级危险源'].map(mapping.get).fillna('')
     #part0:表头
     def part_title(self):
         part_rows=[]
@@ -203,8 +238,9 @@ class analyze_report:
             page=re.sub(r'共\s+页',f'共{str(self.new_database.shape[0])}页',page)
             page=re.sub(r'第\s+页',f'第{str(x+1)}页',page)
             new_page_row[0]=page
-            text=self.new_database['新原因'].tolist()[x]
-            new_modify_row[1]=f'背景描述：航班运行中发生{text}未及时处置。\n危险源识别：{text}'
+            text1=self.new_database['三级危险源'].tolist()[x]
+            text2=self.new_database['二级危险源'].tolist()[x]+"\n"+text1
+            new_modify_row[1]=f'背景描述：航班运行中发生{text1}未及时处置。\n危险源识别：{text2}'
             part_rows.append([new_page_row,new_part_row,new_title_row,new_modify_row])
         return part_rows
     #part2:风险分析和评价
@@ -402,7 +438,10 @@ class analyze_sysrecord:
 
 def form_callback():
     st.session_state.datasavecode=1
-    if 'database' not in st.session_state:
+    if 'database_jk' not in st.session_state:
+        st.session_state.datasavecode=0
+        st.warning('数据库未导入')
+    if 'centredatabase' not in st.session_state:
         st.session_state.datasavecode=0
         st.warning('数据库未导入')
     if 'name' not in st.session_state or st.session_state.name=='':
@@ -481,7 +520,7 @@ if __name__ == "__main__":
                         st.warning('初始数据未准备正确,请上传数据文件')
                     else:
                         #实例化方法
-                        dangerlist=analyze_dangerlist(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
+                        dangerlist=analyze_dangerlist(st.session_state.database_jk,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
                         dangerlist.main()
                         st.success('已生成！')
                         with right_column:
@@ -499,7 +538,7 @@ if __name__ == "__main__":
                         st.warning('初始数据未准备正确,请上传数据文件')
                     else:
                         #实例化方法
-                        report=analyze_report(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr,st.session_state.title)
+                        report=analyze_report(st.session_state.centredatabase,st.session_state.database_jk,st.session_state.flight_type,st.session_state.name,st.session_state.datestr,st.session_state.title)
                         report.main()
                         st.success('已生成！')
                         with right_column:
@@ -516,7 +555,7 @@ if __name__ == "__main__":
                         st.warning('初始数据未准备正确,请上传数据文件') 
                     else:
                         #实例化方法
-                        sysrecord=analyze_sysrecord(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
+                        sysrecord=analyze_sysrecord(st.session_state.database_jk,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
                         sysrecord.main()
                         st.success('已生成！')
                         with right_column:
