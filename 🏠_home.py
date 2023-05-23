@@ -11,8 +11,9 @@ import sys
 import platform
 import webbrowser
 import base64
+import sqlite3
 class home:
-    def __init__(self,options,selected_options):
+    def __init__(self,options):
         #self.img_sphere = Image.open("images/sphere.jpg")
         #self.img_phase_separation = Image.open("images/phase_separation.jpg")
         #self.img_nano = Image.open("images/nano.jpg")
@@ -23,11 +24,16 @@ class home:
         self.dangerlist_path = r'templet/危险源清单模板.xlsx'
         self.sysrecord_path = r'templet/系统与工作分析记录表模板.xlsx'
         self.database_path = r'database/航班动态监控室危险源数据库（对应公司三层级、中心部门级危险源数据库）.xlsx'
+        self.centredatabase_path=r'database/附件5：中心级危险源与部门级危险源关联简表.xlsx'
         self.resultfile = os.path.join(os.getcwd(), 'result')
         self.database = None
         self.options=options
-        self.selected_options=selected_options
-
+    def load_database(self):
+        self.centredatabase=pd.read_excel(os.path.abspath(self.centredatabase_path))
+        self.database_jk = pd.read_excel(os.path.abspath(self.database_path), header=0, skiprows=1)
+        st.session_state.centredatabase=self.centredatabase
+        st.session_state.database_jk=self.database_jk
+ 
     def empty_dir(self, dir_path):
         if platform.system() == 'Windows':
             os.system('del /q ' + dir_path + '\\*')
@@ -116,35 +122,21 @@ class home:
         # 导入数据
         
         st.write("---")
-        select_column,left_column, right_column = st.columns(3)   
-        with select_column:
-            n=1
-            key=0
-            while n<len(self.options):
-                selected = st.selectbox('请选择一个数据库', self.options,key=str(key+1))
-                self.selected_options.append(selected)
-                n+=1
-                key+=1
+        if st.button('导入数据库和模板'):
+            with st.spinner('正在处理数据，请稍等...'):
+                # 在每次复制前清空目标文件夹
+                self.empty_dir(self.resultfile)
+                self.load_database()
+                st.success('监控数据库导入成功！')
 
-        with left_column:
-            if st.button('导入数据库和模板'):
-                with st.spinner('正在处理数据，请稍等...'):
-                    # 在每次复制前清空目标文件夹
-                    self.empty_dir(self.resultfile)
-                    if '监控数据库' in self.selected_options:
-                        database_abs_path = os.path.abspath(self.database_path)
-                        self.database = pd.read_excel(database_abs_path, header=0, skiprows=1)
-                        st.session_state.database=self.database
-                        st.success('监控数据库导入成功！')
-                        
-                    #待加入其他数据库
-                    #elif '' in selected_option:
 
-                    else:
-                        st.warning('请选择正确的数据库！')
-        with right_column:
-            if '监控数据库' in self.selected_options and 'database' in st.session_state:
-                self.download_button(os.path.abspath(self.database_path),"下载查看监控数据库详情")
+
+        selected = st.selectbox('请选择一个数据库', self.options)
+        if st.button('查看详情'):
+            if selected==self.options[0] and 'centredatabase' in st.session_state:
+                st.write(st.session_state.centredatabase)
+            elif selected==self.options[1] and 'database_jk' in st.session_state:
+                st.write(st.session_state.database_jk)
             else:
                 st.warning('未导入数据库')
 if __name__ == "__main__":
@@ -159,5 +151,5 @@ if __name__ == "__main__":
     else:
         st.session_state.first_visit=False
         
-    home=home(['监控数据库','#待加入'],[])
+    home=home(['中心数据库','监控数据库'])
     home.run()
