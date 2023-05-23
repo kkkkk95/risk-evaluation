@@ -132,11 +132,11 @@ class analyze_dangerlist:
 
 #风险评价报告表
 class analyze_report:
-    def __init__(self,databasecentre,databasejk,type,name,date,title):
+    def __init__(self,databasecentre,database,type,name,date,title):
         self.report_path = os.path.abspath(r'templet/风险评价报告表模版.xlsx')
         self.report_save_path=os.path.abspath(r'result/风险评价报告表.xlsx')
         self.databasecentre=databasecentre
-        self.database_jk = databasejk
+        self.database = database
         self.type=type
         self.name=name
         self.date=date
@@ -169,11 +169,11 @@ class analyze_report:
                 self.dic[name]=centrerisk
     def change_database(self):
         if self.type=='国内':
-            self.changed_database=self.database_jk[self.database_jk['国内航线']==1]
+            self.changed_database=self.database[self.database['国内航线']==1]
         elif self.type=='国际一般':
-            self.changed_database=self.database_jk[self.database_jk['国际一般航线']==1]
+            self.changed_database=self.database[self.database['国际一般航线']==1]
         elif self.type=='国际特殊':
-            self.changed_database=self.database_jk[self.database_jk['国际特殊航线']==1]
+            self.changed_database=self.database[self.database['国际特殊航线']==1]
         import pandas as pd
 
         # 获取新原因列
@@ -438,10 +438,7 @@ class analyze_sysrecord:
 
 def form_callback():
     st.session_state.datasavecode=1
-    if 'database_jk' not in st.session_state:
-        st.session_state.datasavecode=0
-        st.warning('数据库未导入')
-    if 'centredatabase' not in st.session_state:
+    if 'database' not in st.session_state:
         st.session_state.datasavecode=0
         st.warning('数据库未导入')
     if 'name' not in st.session_state or st.session_state.name=='':
@@ -520,7 +517,7 @@ if __name__ == "__main__":
                         st.warning('初始数据未准备正确,请上传数据文件')
                     else:
                         #实例化方法
-                        dangerlist=analyze_dangerlist(st.session_state.database_jk,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
+                        dangerlist=analyze_dangerlist(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
                         dangerlist.main()
                         st.success('已生成！')
                         with right_column:
@@ -538,7 +535,7 @@ if __name__ == "__main__":
                         st.warning('初始数据未准备正确,请上传数据文件')
                     else:
                         #实例化方法
-                        report=analyze_report(st.session_state.centredatabase,st.session_state.database_jk,st.session_state.flight_type,st.session_state.name,st.session_state.datestr,st.session_state.title)
+                        report=analyze_report(st.session_state.centredatabase,st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr,st.session_state.title)
                         report.main()
                         st.success('已生成！')
                         with right_column:
@@ -555,7 +552,7 @@ if __name__ == "__main__":
                         st.warning('初始数据未准备正确,请上传数据文件') 
                     else:
                         #实例化方法
-                        sysrecord=analyze_sysrecord(st.session_state.database_jk,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
+                        sysrecord=analyze_sysrecord(st.session_state.database,st.session_state.flight_type,st.session_state.name,st.session_state.datestr)
                         sysrecord.main()
                         st.success('已生成！')
                         with right_column:
