@@ -28,11 +28,12 @@ class home:
         self.resultfile = os.path.join(os.getcwd(), 'result')
         self.database = None
         self.options=options
-    def load_database(self):
+    def load_database(self,data):
         self.centredatabase=pd.read_excel(os.path.abspath(self.centredatabase_path))
-        self.database_jk = pd.read_excel(os.path.abspath(self.database_path), header=0, skiprows=1)
         st.session_state.centredatabase=self.centredatabase
-        st.session_state.database_jk=self.database_jk
+        if data=='监控数据库':
+            self.database_jk = pd.read_excel(os.path.abspath(self.database_path), header=0, skiprows=1)
+            st.session_state.database=self.database_jk
  
     def empty_dir(self, dir_path):
         if platform.system() == 'Windows':
@@ -118,27 +119,28 @@ class home:
                 # 创建一个链接以打开Word文档
                 self.download_button(os.path.abspath(self.doc_path_program),"下载查看工作程序详情")
                 self.download_button(os.path.abspath(self.doc_path_workflow),"下载查看流程详情")
-
-        # 导入数据
         
+        # 导入数据
         st.write("---")
+        selected = st.selectbox('请选择一个子数据库', self.options)
         if st.button('导入数据库和模板'):
             with st.spinner('正在处理数据，请稍等...'):
                 # 在每次复制前清空目标文件夹
                 self.empty_dir(self.resultfile)
-                self.load_database()
-                st.success('监控数据库导入成功！')
-
-
-
-        selected = st.selectbox('请选择一个数据库', self.options)
+                self.load_database(selected)
+                st.success(selected+'导入成功！')
         if st.button('查看详情'):
-            if selected==self.options[0] and 'centredatabase' in st.session_state:
-                st.write(st.session_state.centredatabase)
-            elif selected==self.options[1] and 'database_jk' in st.session_state:
-                st.write(st.session_state.database_jk)
+            if 'database' in st.session_state:
+                st.write(st.session_state.database)
             else:
                 st.warning('未导入数据库')
+        with st.container():
+            st.write("---")
+            if st.button('查看中心数据库'):
+                if 'centredatabase' in st.session_state:
+                    st.write(st.session_state.centredatabase)
+                else:
+                    st.warning('未导入数据库')
 if __name__ == "__main__":
     st.set_page_config(page_title="new_line_analyze", page_icon="🏠")
 
@@ -151,5 +153,5 @@ if __name__ == "__main__":
     else:
         st.session_state.first_visit=False
         
-    home=home(['中心数据库','监控数据库'])
+    home=home(['监控数据库'])
     home.run()
